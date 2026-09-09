@@ -1,0 +1,47 @@
+{
+  "session_id": "demo-dashboard-001",
+  "url": "https://analytics.example.com/overview",
+  "title": "Sales Analytics Overview",
+  "user_query": "What was total revenue this month?",
+  "elements": [
+    {
+      "id": "el_1",
+      "tag": "div",
+      "role": "metric-card",
+      "text": "Total Revenue: ₹4,82,300",
+      "bbox": { "ymin": 40, "xmin": 60, "ymax": 140, "xmax": 320 },
+      "is_interactable": false,
+      "selector": "#metric-revenue"
+    },
+    {
+      "id": "el_2",
+      "tag": "div",
+      "role": "metric-card",
+      "text": "Active Users: 12,904",
+      "bbox": { "ymin": 40, "xmin": 340, "ymax": 140, "xmax": 600 },
+      "is_interactable": false,
+      "selector": "#metric-users"
+    },
+    {
+      "id": "el_3",
+      "tag": "button",
+      "role": "button",
+      "text": "Export Report",
+      "bbox": { "ymin": 900, "xmin": 820, "ymax": 950, "xmax": 960 },
+      "is_interactable": true,
+      "selector": "#btn-export-report"
+    },
+    {
+      "id": "el_4",
+      "tag": "span",
+      "role": "text",
+      "text": "Account manager: <PERSON_1>",
+      "bbox": { "ymin": 20, "xmin": 900, "ymax": 40, "xmax": 990 },
+      "is_interactable": false,
+      "selector": "#account-manager-label"
+    }
+  ],
+  "redacted_image_b64": null,
+  "timestamp": 1749470400.0,
+  "token_map_digest": "sha256:9f1c2a...redacted-for-audit-only"
+}

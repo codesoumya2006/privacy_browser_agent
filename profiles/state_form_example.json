@@ -1,0 +1,62 @@
+{
+  "session_id": "demo-form-001",
+  "url": "https://portal.example.gov.in/registration/step-2",
+  "title": "Registration - Step 2 of 4: Identity Verification",
+  "user_query": "Continue filling out this form",
+  "elements": [
+    {
+      "id": "el_1",
+      "tag": "input",
+      "role": "textbox",
+      "text": "<PERSON_1>",
+      "bbox": { "ymin": 150, "xmin": 280, "ymax": 190, "xmax": 680 },
+      "is_interactable": true,
+      "selector": "#applicant-name",
+      "input_type": "text",
+      "placeholder": "Full legal name"
+    },
+    {
+      "id": "el_2",
+      "tag": "input",
+      "role": "textbox",
+      "text": "[Aadhaar Redacted]",
+      "bbox": { "ymin": 200, "xmin": 280, "ymax": 240, "xmax": 680 },
+      "is_interactable": true,
+      "selector": "#aadhaar-number",
+      "input_type": "text",
+      "placeholder": "Aadhaar number"
+    },
+    {
+      "id": "el_3",
+      "tag": "input",
+      "role": "textbox",
+      "text": "",
+      "bbox": { "ymin": 250, "xmin": 280, "ymax": 290, "xmax": 680 },
+      "is_interactable": true,
+      "selector": "#mobile-number",
+      "input_type": "tel",
+      "placeholder": "Registered mobile number"
+    },
+    {
+      "id": "el_4",
+      "tag": "button",
+      "role": "button",
+      "text": "Save & Continue",
+      "bbox": { "ymin": 900, "xmin": 750, "ymax": 950, "xmax": 950 },
+      "is_interactable": true,
+      "selector": "#save-continue-btn"
+    },
+    {
+      "id": "el_5",
+      "tag": "button",
+      "role": "button",
+      "text": "Submit Application",
+      "bbox": { "ymin": 900, "xmin": 100, "ymax": 950, "xmax": 300 },
+      "is_interactable": true,
+      "selector": "#submit-application-btn"
+    }
+  ],
+  "redacted_image_b64": null,
+  "timestamp": 1749470400.0,
+  "token_map_digest": "sha256:71bc09...redacted-for-audit-only"
+}
