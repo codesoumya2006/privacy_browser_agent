@@ -179,6 +179,7 @@ async def interact(state: SanitizedPageState) -> InteractResponse:
                     state.elements,
                     state.redacted_image_b64,
                     state.user_query,
+                    state.preferred_language,
                 )
         except Exception as exc:
             logger.exception("page perception model call failed")
@@ -195,6 +196,7 @@ async def interact(state: SanitizedPageState) -> InteractResponse:
                     state.elements,
                     perception.page_category,
                     state.user_query,
+                    state.preferred_language,
                 )
             action = ActionCommand(
                 action_type="extract",
@@ -211,6 +213,7 @@ async def interact(state: SanitizedPageState) -> InteractResponse:
                     perception.page_category,
                     state.user_query,
                     history,
+                    state.preferred_language,
                 )
 
         # ---- 4. Action safety gate (mandatory, deterministic) -------------#

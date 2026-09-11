@@ -18,6 +18,7 @@ interface ChatInterfaceProps {
   messages: ChatMessage[];
   onSend: (text: string) => void;
   speakingText: string | null;
+  selectedLanguage: string;
   disabled?: boolean;
 }
 
@@ -123,7 +124,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-export default function ChatInterface({ messages, onSend, speakingText, disabled }: ChatInterfaceProps) {
+export default function ChatInterface({ messages, onSend, speakingText, selectedLanguage, disabled }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
   const voiceInterimRef = useRef("");
@@ -184,6 +185,7 @@ export default function ChatInterface({ messages, onSend, speakingText, disabled
           <VoiceController
             speakingText={speakingText}
             onTranscript={handleVoiceTranscript}
+            selectedLanguage={selectedLanguage}
           />
           <button
             type="submit"

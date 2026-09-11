@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 import logging
 from typing import List
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from google.genai.errors import ServerError
 
 from shared_libraries.constants import MODEL_NAME
 from shared_libraries.types import PagePerceptionResult, ScrapedElement
@@ -38,13 +40,23 @@ def _build_user_content(
     )
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(ServerError),
+    reraise=True
+)
 async def run(
     genai_client,
     elements: List[ScrapedElement],
     redacted_image_b64: str | None,
     user_query: str | None,
+    preferred_language: str = "en-IN",
 ) -> PagePerceptionResult:
     """Invoke the page perception model call and parse a strict JSON result."""
+    from shared_libraries.language_utils import build_language_system_suffix
+    system_prompt = PAGE_PERCEPTION_SYSTEM_PROMPT + build_language_system_suffix(preferred_language)
+
     contents: list = []
     if redacted_image_b64:
         contents.append(
@@ -60,7 +72,9 @@ async def run(
         contents.append(
             {
                 "role": "user",
-                "parts": [{"text": _build_user_content(elements, redacted_image_b64, user_query)}],
+                "parts": [
+                    {"text": _build_user_content(elements, redacted_image_b64, user_query)},
+                ],
             }
         )
 
@@ -68,7 +82,7 @@ async def run(
         model=MODEL_NAME,
         contents=contents,
         config={
-            "system_instruction": PAGE_PERCEPTION_SYSTEM_PROMPT,
+            "system_instruction": system_prompt,
             "response_mime_type": "application/json",
         },
     )

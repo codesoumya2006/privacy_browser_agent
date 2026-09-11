@@ -6,9 +6,10 @@ import { SpeechHandler } from "../../utils/speechHandler";
 interface VoiceControllerProps {
   onTranscript: (text: string, isFinal: boolean) => void;
   speakingText: string | null; // set this to have the assistant speak a new guidance message
+  selectedLanguage: string;
 }
 
-export default function VoiceController({ onTranscript, speakingText }: VoiceControllerProps) {
+export default function VoiceController({ onTranscript, speakingText, selectedLanguage }: VoiceControllerProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [interim, setInterim] = useState("");
@@ -41,13 +42,13 @@ export default function VoiceController({ onTranscript, speakingText }: VoiceCon
   useEffect(() => {
     if (!speakingText || !handlerRef.current) return;
     setIsSpeaking(true);
-    handlerRef.current.speak(speakingText);
+    handlerRef.current.speak(speakingText, selectedLanguage);
     // speechSynthesis has no reliable cross-browser "end" promise wrapper
     // exposed here, so approximate a speaking indicator window.
     const estimatedMs = Math.min(6000, Math.max(1200, speakingText.length * 55));
     const t = setTimeout(() => setIsSpeaking(false), estimatedMs);
     return () => clearTimeout(t);
-  }, [speakingText]);
+  }, [speakingText, selectedLanguage]);
 
   const toggleListening = () => {
     if (!handlerRef.current) return;
@@ -55,7 +56,7 @@ export default function VoiceController({ onTranscript, speakingText }: VoiceCon
     if (isListening) {
       handlerRef.current.stopListening();
     } else {
-      handlerRef.current.startListening();
+      handlerRef.current.startListening(selectedLanguage);
     }
   };
 

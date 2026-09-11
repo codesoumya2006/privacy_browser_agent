@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 import logging
 from typing import List, Optional
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from google.genai.errors import ServerError
 
 from shared_libraries.constants import MODEL_NAME
 from shared_libraries.types import PageCategory, ScrapedElement
@@ -25,11 +27,18 @@ except ImportError:  # pragma: no cover
     _ADKAgent = None
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(ServerError),
+    reraise=True
+)
 async def run(
     genai_client,
     elements: List[ScrapedElement],
     page_category: PageCategory,
     user_query: Optional[str],
+    preferred_language: str = "en-IN",
 ) -> dict:
     """Returns a dict with keys: answer_summary, structured_data, source_element_ids."""
     payload = {
@@ -38,11 +47,14 @@ async def run(
         "elements": [e.model_dump() for e in elements],
     }
 
+    from shared_libraries.language_utils import build_language_system_suffix
+    system_prompt = DATA_EXTRACTION_SYSTEM_PROMPT + build_language_system_suffix(preferred_language)
+
     response = await genai_client.aio.models.generate_content(
         model=MODEL_NAME,
         contents=[{"role": "user", "parts": [{"text": json.dumps(payload, default=str)}]}],
         config={
-            "system_instruction": DATA_EXTRACTION_SYSTEM_PROMPT,
+            "system_instruction": system_prompt,
             "response_mime_type": "application/json",
         },
     )
