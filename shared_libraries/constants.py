@@ -8,6 +8,7 @@ tools/redaction_verifier.py can perform a fail-safe audit and refuse to
 process anything that slipped through.
 """
 
+import os
 import re
 
 # --------------------------------------------------------------------------- #
@@ -65,5 +66,5 @@ SENSITIVE_INPUT_TYPES = {"password", "tel", "email"}
 # --------------------------------------------------------------------------- #
 # Networking / model
 # --------------------------------------------------------------------------- #
-MODEL_NAME = "openrouter/free"
+MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 MAX_SESSION_HISTORY_TURNS = 5

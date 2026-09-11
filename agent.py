@@ -19,10 +19,8 @@ import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
-from types import SimpleNamespace
 
-import httpx
-
+from google import genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,86 +64,27 @@ class LocalOCRRequest(BaseModel):
     image_b64: str
 
 
-class _OpenRouterModels:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-
-    async def generate_content(self, *, model: str, contents: list, config: dict):
-        messages = []
-        system_instruction = config.get("system_instruction")
-        if system_instruction:
-            messages.append({"role": "system", "content": system_instruction})
-
-        for content in contents:
-            parts = []
-            for part in content.get("parts", []):
-                if "text" in part:
-                    parts.append({"type": "text", "text": part["text"]})
-                elif "inline_data" in part:
-                    image = part["inline_data"]
-                    parts.append(
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{image['mime_type']};base64,{image['data']}"
-                            },
-                        }
-                    )
-            messages.append({"role": content.get("role", "user"), "content": parts})
-
-        payload = {
-            "model": model,
-            "messages": messages,
-            "reasoning": {"enabled": True},
-        }
-        if config.get("response_mime_type") == "application/json":
-            payload["response_format"] = {"type": "json_object"}
-
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        async with httpx.AsyncClient(timeout=120) as client:
-            response = await client.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=payload,
-            )
-        response.raise_for_status()
-        data = response.json()
-        message = data["choices"][0]["message"]
-        text = message.get("content") or ""
-        if isinstance(text, list):
-            text = "".join(part.get("text", "") for part in text if isinstance(part, dict))
-        return SimpleNamespace(text=text, reasoning_details=message.get("reasoning_details"))
-
-
-class _OpenRouterClient:
-    def __init__(self, api_key: str):
-        self.aio = SimpleNamespace(models=_OpenRouterModels(api_key))
-
-
-def _init_openrouter_client():
-    """Initialize OpenRouter using OPENROUTER_API_KEY from the environment."""
+def _init_gemini_client():
+    """Initialize Google Gemini using GEMINI_API_KEY from the environment."""
     global _genai_client, _model_ready
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         logger.warning(
-            "No OPENROUTER_API_KEY set; server will start but "
+            "No GEMINI_API_KEY set; server will start but "
             "/api/v1/interact will fail until a key is configured."
         )
         _genai_client = None
         _model_ready = False
         return
-    _genai_client = _OpenRouterClient(api_key)
+    _genai_client = genai.Client(api_key=api_key)
     _model_ready = True
-    logger.info("OpenRouter client initialized (model=%s)", MODEL_NAME)
+    logger.info("Gemini client initialized (model=%s)", MODEL_NAME)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_tracing()
-    _init_openrouter_client()
+    _init_gemini_client()
     yield
     logger.info("shutting down; active sessions=%d", state_memory_store.active_session_count())
 
@@ -229,7 +168,7 @@ async def interact(state: SanitizedPageState) -> InteractResponse:
         if _genai_client is None:
             raise HTTPException(
                 status_code=503,
-                detail="Model backend not configured. Set OPENROUTER_API_KEY and restart.",
+                detail="Model backend not configured. Set GEMINI_API_KEY and restart.",
             )
 
         # ---- 2. Page perception -------------------------------------------#
