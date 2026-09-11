@@ -3,7 +3,7 @@
 A privacy-preserving, universal browser assistant: a Chrome extension
 locally redacts screenshots and DOM text (canvas black-out + referential
 tokenization) before anything is sent to a Google ADK-style multi-agent
-FastAPI backend running on Gemini 2.5 Flash, which reasons over the
+FastAPI backend running on Gemini 3.6 Flash, which reasons over the
 sanitized state and returns a single safe next action for the extension
 to execute on the live page.
 
