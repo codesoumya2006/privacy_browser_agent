@@ -53,9 +53,48 @@ export class SpeechHandler {
   private recognition: SpeechRecognitionLike | null = null;
   private callbacks: SpeechHandlerCallbacks;
   private listening = false;
+  private cachedVoices: SpeechSynthesisVoice[] = [];
 
   constructor(callbacks: SpeechHandlerCallbacks = {}) {
     this.callbacks = callbacks;
+    // Eagerly load voices — some browsers populate them asynchronously.
+    this._loadVoices();
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.addEventListener("voiceschanged", () => this._loadVoices());
+    }
+  }
+
+  private _loadVoices(): void {
+    if ("speechSynthesis" in window) {
+      this.cachedVoices = window.speechSynthesis.getVoices();
+    }
+  }
+
+  /**
+   * Find the best matching voice for a given BCP-47 language tag.
+   * Tries exact match first (e.g. "bn-IN"), then prefix match (e.g. "bn"),
+   * then falls back to null (browser default).
+   */
+  private _findVoice(lang: string): SpeechSynthesisVoice | null {
+    // Refresh cache in case voices loaded after construction.
+    if (this.cachedVoices.length === 0) this._loadVoices();
+
+    const langLower = lang.toLowerCase();
+    const prefix = langLower.split("-")[0]; // e.g. "bn" from "bn-IN"
+
+    // 1. Exact match
+    const exact = this.cachedVoices.find(
+      (v) => v.lang.toLowerCase() === langLower
+    );
+    if (exact) return exact;
+
+    // 2. Prefix match (e.g. voice.lang "bn-BD" matches request "bn-IN")
+    const prefixMatch = this.cachedVoices.find(
+      (v) => v.lang.toLowerCase().startsWith(prefix)
+    );
+    if (prefixMatch) return prefixMatch;
+
+    return null;
   }
 
   isSupported(): boolean {
@@ -120,16 +159,22 @@ export class SpeechHandler {
   }
 
   /**
-   * Speaks `text` aloud. Automatically skipped if the text looks like it
-   * might contain a surrogate token literal (e.g. "<PERSON_1>") since
-   * reading raw tokens aloud is confusing -- callers should detokenize a
-   * natural-language version for speech separately if needed.
+   * Speaks `text` aloud in the given language. Explicitly finds and sets
+   * a matching SpeechSynthesisVoice so the browser actually uses the
+   * correct language instead of falling back to the default English voice.
    */
   speak(text: string, lang = "en-IN"): void {
     if (!("speechSynthesis" in window) || !text) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+
+    // Explicitly set a voice matching the language.
+    const voice = this._findVoice(lang);
+    if (voice) {
+      utterance.voice = voice;
+    }
+
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);

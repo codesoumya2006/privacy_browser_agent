@@ -21,6 +21,7 @@ export interface SanitizedPageState {
   elements: ScrapedElement[];
   redacted_image_b64: string | null;
   timestamp: number;
+  preferred_language: string;
 }
 
 export type ActionType = "click" | "type_tokenized" | "scroll" | "highlight" | "extract" | "none";

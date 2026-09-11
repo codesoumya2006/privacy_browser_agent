@@ -24,6 +24,7 @@ function newId(): string {
 export default function App() {
   const [sessionId, setSessionId] = useState(() => newId());
   const [activeTabName, setActiveTabName] = useState<Tab>("chat");
+  const [selectedLanguage, setSelectedLanguage] = useState("en-IN");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [redactionSnapshot, setRedactionSnapshot] = useState<RedactionSnapshot | null>(null);
   const [pendingAction, setPendingAction] = useState<
@@ -79,6 +80,7 @@ export default function App() {
           elements: scrape.elements,
           redacted_image_b64: snapshot.redactedImageB64,
           timestamp: Date.now() / 1000,
+          preferred_language: selectedLanguage,
         });
 
         setLastPageCategory(response.page_category);
@@ -123,7 +125,7 @@ export default function App() {
         setIsBusy(false);
       }
     },
-    [sessionId, pushMessage]
+    [sessionId, selectedLanguage, pushMessage]
   );
 
   const handleSend = useCallback(
@@ -182,6 +184,16 @@ export default function App() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            disabled={isBusy}
+            className="rounded-full bg-slate-800 px-2 py-1 text-xs text-slate-300 outline-none hover:bg-slate-700 border border-white/10"
+          >
+            <option value="en-IN" className="bg-slate-800 text-slate-200">🇬🇧 English</option>
+            <option value="bn-IN" className="bg-slate-800 text-slate-200">🇮🇳 বাংলা</option>
+            <option value="hi-IN" className="bg-slate-800 text-slate-200">🇮🇳 हिन्दी</option>
+          </select>
           <button
             type="button"
             onClick={handleNewChat}
@@ -231,6 +243,7 @@ export default function App() {
                 messages={messages}
                 onSend={handleSend}
                 speakingText={lastSpokenText}
+                selectedLanguage={selectedLanguage}
                 disabled={isBusy}
               />
             </div>

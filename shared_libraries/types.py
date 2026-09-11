@@ -83,6 +83,7 @@ class SanitizedPageState(BaseModel):
     redacted_image_b64: Optional[str] = None
     timestamp: float = Field(default_factory=time)
     token_map_digest: Optional[str] = None  # non-reversible hash for audit logging only
+    preferred_language: str = "en-IN"
 
 
 # --------------------------------------------------------------------------- #
